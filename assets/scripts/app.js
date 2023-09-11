@@ -8,6 +8,7 @@ class Product
         this.description = desc;
         this.price = price;
     }
+    
 }
     
 class ProductItem 
@@ -15,7 +16,9 @@ class ProductItem
     constructor(product) {
         this.product = product
     }
-
+    addToCart() {
+        App.addProductToCart(this.product);
+    }
     render() 
     {
         const prodEl = document.createElement('li');
@@ -32,10 +35,45 @@ class ProductItem
                 </div>  
             </div>
         `;
+        const addToCartButton = prodEl.querySelector("button");
+        addToCartButton.addEventListener('click', this.addToCart.bind(this));
         return prodEl;
     }
 }
     
+class ShoppingCart {
+    items = [];
+    
+    set cartItem(value) {
+        this.items = value; // Perbaiki typo dari this.item menjadi this.items
+        this.totalOutput.innerHTML = `<h2>Total : Rp. ${this.totalAmount}</h2>`;
+    }
+
+    get totalAmount() {
+        const sum = this.items.reduce((prevValue, curItem) => {
+            return prevValue + curItem.price;
+        }, 0);
+        return sum;
+    }
+
+    addProduct(product) {
+        const updateItems = [...this.items];
+        updateItems.push(product);
+        this.cartItem = updateItems;
+    }
+
+    render() {
+        const cartEl = document.createElement('section');
+        cartEl.innerHTML = `
+        <h2>Total : Rp. ${this.totalAmount}</h2>
+        <button>Pesan Sekarang</button>
+        `;
+        cartEl.className = 'cart';
+        this.totalOutput = cartEl.querySelector('h2');
+        return cartEl;
+    }
+}
+
 class ProductList 
 {
     products = 
@@ -67,9 +105,35 @@ class ProductList
             prodList.append(prodEl);
         }
         // memasukkan elementnya
-        renderHook.append(prodList);
+        return prodList;
     }
 }     
     
-const productList = new ProductList();
-productList.render();
+class FSW2Shop {
+    render(){
+        const renderHook = document.getElementById('app');
+
+        this.cart = new ShoppingCart();
+        const cartEl = this.cart.render();
+
+        const productList = new ProductList();
+        const prodListEl = productList.render();
+
+        renderHook.append(cartEl);
+        renderHook.append(prodListEl);
+    }
+}
+// static method
+class App {
+    static init(){
+        const shop = new FSW2Shop();
+        shop.render();
+        this.cart = shop.cart;
+    }
+
+    static addProductToCart(product) {
+        this.cart.addProduct(product);
+    }
+}
+App.init();
+
